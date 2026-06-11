@@ -8,17 +8,35 @@ from lava.proc.csnn.pooling.utils import _as_pair
 
 
 class CSNNSpikePooling(AbstractProcess):
-    """Lava process for first-spike spatial pooling."""
+    """Lava process for first-spike spatial pooling.
+
+    Parameters
+    ----------
+    input_shape : tuple of int
+        Shape of the input as `(width, height, channels)`.
+    kernel_size : int or tuple of int, optional
+        Size of the pooling window. Default is (2, 2).
+    stride : int or tuple of int, optional
+        Stride of the pooling window. Default is (2, 2).
+    padding : int or tuple of int, optional
+        Zero-padding added to both sides of the input. Default is 0.
+    name : str, optional
+        Name of the process.
+    log_config : LogConfig, optional
+        Logging configuration.
+    """
 
     def __init__(
-            self,
-            *,
-            input_shape: tuple[int, int, int],
-            kernel_size: int | tuple[int, int] = (2, 2),
-            stride: int | tuple[int, int] = (2, 2),
-            padding: int | tuple[int, int] = 0,
-            name: str | None = None,
-            log_config: LogConfig | None = None) -> None:
+        self,
+        *,
+        input_shape: tuple[int, int, int],
+        kernel_size: int | tuple[int, int] = (2, 2),
+        stride: int | tuple[int, int] = (2, 2),
+        padding: int | tuple[int, int] = 0,
+        name: str | None = None,
+        log_config: LogConfig | None = None,
+    ) -> None:
+        """Initialize the CSNNSpikePooling process."""
         input_shape = tuple(int(v) for v in input_shape)
         kernel_size = _as_pair(kernel_size, "kernel_size")
         stride = _as_pair(stride, "stride")
@@ -37,7 +55,8 @@ class CSNNSpikePooling(AbstractProcess):
             stride=stride,
             padding=padding,
             name=name,
-            log_config=log_config)
+            log_config=log_config,
+        )
         self.input_shape = input_shape
         self.output_shape = output_shape
         self.s_in = InPort(shape=input_shape)
@@ -45,15 +64,29 @@ class CSNNSpikePooling(AbstractProcess):
 
 
 class CSNNSumPooling(AbstractProcess):
-    """Lava process for simulator output SumPooling target size."""
+    """Lava process for simulator output SumPooling target size.
+
+    Parameters
+    ----------
+    input_shape : tuple of int
+        Shape of the input as `(width, height, channels)`.
+    target_shape : tuple of int
+        Desired target shape as `(width, height)`.
+    name : str, optional
+        Name of the process.
+    log_config : LogConfig, optional
+        Logging configuration.
+    """
 
     def __init__(
-            self,
-            *,
-            input_shape: tuple[int, int, int],
-            target_shape: tuple[int, int],
-            name: str | None = None,
-            log_config: LogConfig | None = None) -> None:
+        self,
+        *,
+        input_shape: tuple[int, int, int],
+        target_shape: tuple[int, int],
+        name: str | None = None,
+        log_config: LogConfig | None = None,
+    ) -> None:
+        """Initialize the CSNNSumPooling process."""
         input_shape = tuple(int(v) for v in input_shape)
         target_shape = tuple(int(v) for v in target_shape)
         output_shape = (
@@ -66,7 +99,8 @@ class CSNNSumPooling(AbstractProcess):
             target_shape=target_shape,
             output_shape=output_shape,
             name=name,
-            log_config=log_config)
+            log_config=log_config,
+        )
         self.input_shape = input_shape
         self.output_shape = output_shape
         self.s_in = InPort(shape=input_shape)

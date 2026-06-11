@@ -7,7 +7,9 @@ from typing import Optional, Tuple
 import numpy as np
 
 
-def ensure_spatial_tensor(sample: np.ndarray, *, dtype=np.float32) -> np.ndarray:
+def ensure_spatial_tensor(
+    sample: np.ndarray, *, dtype=np.float32
+) -> np.ndarray:
     """Return ``sample`` as ``(width, height, channels)`` float tensor."""
 
     dtype = np.dtype(dtype)
@@ -17,16 +19,17 @@ def ensure_spatial_tensor(sample: np.ndarray, *, dtype=np.float32) -> np.ndarray
     if arr.ndim == 3:
         return arr
     raise ValueError(
-        "expected a 2D image or 3D spatial tensor, "
-        f"got shape {arr.shape}")
+        "expected a 2D image or 3D spatial tensor, " f"got shape {arr.shape}"
+    )
 
 
 def create_dog_filter(
-        filter_size: int = 7,
-        center_sigma: float = 1.0,
-        surround_sigma: float = 4.0,
-        *,
-        dtype=np.float32) -> np.ndarray:
+    filter_size: int = 7,
+    center_sigma: float = 1.0,
+    surround_sigma: float = 4.0,
+    *,
+    dtype=np.float32,
+) -> np.ndarray:
     """Create the normalized Difference-of-Gaussians filter used by CSNN."""
 
     dtype = np.dtype(dtype)
@@ -51,12 +54,13 @@ def create_dog_filter(
 
 
 def default_on_off_filter(
-        sample: np.ndarray,
-        *,
-        filter_size: int = 7,
-        center_sigma: float = 1.0,
-        surround_sigma: float = 4.0,
-        dtype=np.float32) -> np.ndarray:
+    sample: np.ndarray,
+    *,
+    filter_size: int = 7,
+    center_sigma: float = 1.0,
+    surround_sigma: float = 4.0,
+    dtype=np.float32,
+) -> np.ndarray:
     """Apply CSNN default On/Off DoG preprocessing."""
 
     dtype = np.dtype(dtype)
@@ -64,7 +68,8 @@ def default_on_off_filter(
     img = ensure_spatial_tensor(sample, dtype=dtype)
     width, height, channels = img.shape
     kernel = create_dog_filter(
-        filter_size, center_sigma, surround_sigma, dtype=dtype)
+        filter_size, center_sigma, surround_sigma, dtype=dtype
+    )
     k_width, k_height = kernel.shape
     half_w = k_width // 2
     half_h = k_height // 2
@@ -88,10 +93,12 @@ class FeatureScaler:
     """Per-element train-set min/max scaler matching CSNN FeatureScaling."""
 
     def __init__(
-            self,
-            min_: Optional[np.ndarray] = None,
-            max_: Optional[np.ndarray] = None,
-            dtype: np.dtype = np.float32) -> None:
+        self,
+        min_: Optional[np.ndarray] = None,
+        max_: Optional[np.ndarray] = None,
+        dtype: np.dtype = np.float32,
+    ) -> None:
+        """Initialize the feature scaler with optional min and max values."""
         self.min_ = min_
         self.max_ = max_
         self.dtype = np.dtype(dtype)
@@ -121,11 +128,12 @@ class FeatureScaler:
 
 
 def feature_scale(
-        values: np.ndarray,
-        min_values: np.ndarray,
-        max_values: np.ndarray,
-        *,
-        dtype=np.float32) -> np.ndarray:
+    values: np.ndarray,
+    min_values: np.ndarray,
+    max_values: np.ndarray,
+    *,
+    dtype=np.float32,
+) -> np.ndarray:
     """Scale values with per-element min/max arrays."""
 
     dtype = np.dtype(dtype)
@@ -139,10 +147,8 @@ def feature_scale(
 
 
 def feature_scale_train_test(
-        train: np.ndarray,
-        test: Optional[np.ndarray] = None,
-        *,
-        dtype=np.float32) -> Tuple[np.ndarray, Optional[np.ndarray], FeatureScaler]:
+    train: np.ndarray, test: Optional[np.ndarray] = None, *, dtype=np.float32
+) -> Tuple[np.ndarray, Optional[np.ndarray], FeatureScaler]:
     """Fit train-set scaling and apply it to train and optional test data."""
 
     scaler = FeatureScaler(dtype=dtype)

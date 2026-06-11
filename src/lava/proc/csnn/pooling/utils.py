@@ -10,6 +10,20 @@ from lava.proc.csnn.latency.utils import INFINITE_TIME
 
 
 def _as_pair(value: Union[int, Tuple[int, int]], name: str) -> Tuple[int, int]:
+    """Convert value to a tuple of two integers.
+
+    Parameters
+    ----------
+    value : int or tuple of int
+        Scalar integer or a pair of integers.
+    name : str
+        Name of parameter for error messages.
+
+    Returns
+    -------
+    tuple of (int, int)
+        A pair of integers.
+    """
     if np.isscalar(value):
         value = int(value)
         return value, value
@@ -19,22 +33,36 @@ def _as_pair(value: Union[int, Tuple[int, int]], name: str) -> Tuple[int, int]:
 
 
 def _validate_spatial_tensor(data: np.ndarray) -> np.ndarray:
+    """Validate that the input tensor is a 3D spatial tensor.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        Input tensor to validate.
+
+    Returns
+    -------
+    np.ndarray
+        Validated numpy array.
+    """
     arr = np.asarray(data)
     if arr.ndim != 3:
         raise ValueError(
             "expected a 3D tensor in (width, height, channels) order, "
-            f"got shape {arr.shape}")
+            f"got shape {arr.shape}"
+        )
     return arr
 
 
 def spike_pool2d(
-        spike_times: np.ndarray,
-        *,
-        kernel_size: Union[int, Tuple[int, int]] = (2, 2),
-        stride: Union[int, Tuple[int, int]] = (2, 2),
-        padding: Union[int, Tuple[int, int]] = 0,
-        dtype=np.float32) -> np.ndarray:
-    """Pool CSNN spike-time tensors by keeping the first spike in each window."""
+    spike_times: np.ndarray,
+    *,
+    kernel_size: Union[int, Tuple[int, int]] = (2, 2),
+    stride: Union[int, Tuple[int, int]] = (2, 2),
+    padding: Union[int, Tuple[int, int]] = 0,
+    dtype=np.float32,
+) -> np.ndarray:
+    """Pool CSNN spike-time tensors by keeping the first spike per window."""
 
     data = _validate_spatial_tensor(spike_times).astype(dtype, copy=False)
     kernel_w, kernel_h = _as_pair(kernel_size, "kernel_size")
@@ -52,7 +80,8 @@ def spike_pool2d(
         data,
         ((pad_w, pad_w), (pad_h, pad_h), (0, 0)),
         mode="constant",
-        constant_values=INFINITE_TIME)
+        constant_values=INFINITE_TIME,
+    )
     padded_w, padded_h, channels = padded.shape
 
     if padded_w < kernel_w or padded_h < kernel_h:
@@ -74,10 +103,8 @@ def spike_pool2d(
 
 
 def sum_pool2d(
-        features: np.ndarray,
-        *,
-        target_shape: Tuple[int, int],
-        dtype=np.float32) -> np.ndarray:
+    features: np.ndarray, *, target_shape: Tuple[int, int], dtype=np.float32
+) -> np.ndarray:
     """Spatial sum pooling for post-conversion feature tensors."""
 
     data = _validate_spatial_tensor(features).astype(dtype, copy=False)
@@ -104,15 +131,14 @@ def sum_pool2d(
     return out
 
 
-def first_spike_pool2x2(spike_times: np.ndarray, *, dtype=np.float32) -> np.ndarray:
+def first_spike_pool2x2(
+    spike_times: np.ndarray, *, dtype=np.float32
+) -> np.ndarray:
     """Convenience wrapper for CSNN ``Pooling(2, 2, 2, 2)``."""
 
     return spike_pool2d(
-        spike_times,
-        kernel_size=(2, 2),
-        stride=(2, 2),
-        padding=0,
-        dtype=dtype)
+        spike_times, kernel_size=(2, 2), stride=(2, 2), padding=0, dtype=dtype
+    )
 
 
 __all__ = [

@@ -22,17 +22,22 @@ class PyCSNNSpikePoolingModel(PyLoihiProcessModel):
     s_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, float)
 
     def __init__(self, proc_params):
+        """Initialize the spike pooling model."""
         super().__init__(proc_params)
         self.kernel_size = tuple(int(v) for v in proc_params["kernel_size"])
         self.stride = tuple(int(v) for v in proc_params["stride"])
         self.padding = tuple(int(v) for v in proc_params["padding"])
 
     def run_spk(self) -> None:
-        self.s_out.send(spike_pool2d(
-            self.s_in.recv(),
-            kernel_size=self.kernel_size,
-            stride=self.stride,
-            padding=self.padding))
+        """Run the spike pooling simulation step."""
+        self.s_out.send(
+            spike_pool2d(
+                self.s_in.recv(),
+                kernel_size=self.kernel_size,
+                stride=self.stride,
+                padding=self.padding,
+            )
+        )
 
 
 @implements(proc=CSNNSumPooling, protocol=LoihiProtocol)
@@ -45,11 +50,15 @@ class PyCSNNSumPoolingModel(PyLoihiProcessModel):
     s_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, float)
 
     def __init__(self, proc_params):
+        """Initialize the sum pooling model."""
         super().__init__(proc_params)
         self.target_shape = tuple(int(v) for v in proc_params["target_shape"])
 
     def run_spk(self) -> None:
-        self.s_out.send(sum_pool2d(self.s_in.recv(), target_shape=self.target_shape))
+        """Run the sum pooling simulation step."""
+        self.s_out.send(
+            sum_pool2d(self.s_in.recv(), target_shape=self.target_shape)
+        )
 
 
 __all__ = ["PyCSNNSpikePoolingModel", "PyCSNNSumPoolingModel"]

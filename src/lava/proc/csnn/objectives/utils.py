@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import numpy as np
 
-
 T_OBJ = 0.75
 
+
 def time_objective_output(
-        spike_times: np.ndarray,
-        *,
-        t_obj: float = T_OBJ,
-        dtype=np.float32) -> np.ndarray:
+    spike_times: np.ndarray, *, t_obj: float = T_OBJ, dtype=np.float32
+) -> np.ndarray:
     """Convert timestamps with csnn-simulator ``TimeObjectiveOutput`` logic."""
 
     data = np.asarray(spike_times, dtype=dtype)

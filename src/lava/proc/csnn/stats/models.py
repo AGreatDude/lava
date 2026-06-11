@@ -33,7 +33,10 @@ class PyCSNNActivityModel(PyLoihiProcessModel):
     stats_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, float)
 
     def run_spk(self) -> None:
-        self.stats_out.send(activity_to_vector(activity_stats(self.s_in.recv())))
+        """Run the activity statistics simulation step."""
+        self.stats_out.send(
+            activity_to_vector(activity_stats(self.s_in.recv()))
+        )
 
 
 @implements(proc=CSNNCoherence, protocol=LoihiProtocol)
@@ -47,6 +50,7 @@ class PyCSNNCoherenceModel(PyLoihiProcessModel):
     weights: np.ndarray = LavaPyType(np.ndarray, float)
 
     def run_spk(self) -> None:
+        """Run the coherence statistics simulation step."""
         _ = self.s_in.recv()
         self.stats_out.send(coherence_to_vector(coherence_stats(self.weights)))
 
@@ -63,17 +67,29 @@ class PyCSNNAnalysisMediatorModel(PyLoihiProcessModel):
     analysis_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, float)
 
     def __init__(self, proc_params):
+        """Initialize the analysis mediator model."""
         super().__init__(proc_params)
         self.has_coherence = bool(proc_params["has_coherence"])
         self.has_svm = bool(proc_params["has_svm"])
 
     def run_spk(self) -> None:
-        parts = [np.asarray(self.activity_in.recv(), dtype=np.float32).reshape(-1)]
+        """Run the analysis mediator simulation step."""
+        parts = [
+            np.asarray(self.activity_in.recv(), dtype=np.float32).reshape(-1)
+        ]
         if self.has_coherence:
-            parts.append(np.asarray(self.coherence_in.recv(), dtype=np.float32).reshape(-1))
+            parts.append(
+                np.asarray(self.coherence_in.recv(), dtype=np.float32).reshape(
+                    -1
+                )
+            )
         if self.has_svm:
-            parts.append(np.asarray(self.svm_in.recv(), dtype=np.float32).reshape(-1))
-        self.analysis_out.send(np.concatenate(parts).astype(np.float32, copy=False))
+            parts.append(
+                np.asarray(self.svm_in.recv(), dtype=np.float32).reshape(-1)
+            )
+        self.analysis_out.send(
+            np.concatenate(parts).astype(np.float32, copy=False)
+        )
 
 
 __all__ = [

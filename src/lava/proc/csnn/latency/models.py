@@ -22,11 +22,15 @@ class PyCSNNLatencyCodingModel(PyLoihiProcessModel):
     s_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, float)
 
     def __init__(self, proc_params):
+        """Initialize the latency coding model."""
         super().__init__(proc_params)
         self.max_timestamp = proc_params.get("max_timestamp")
 
     def run_spk(self) -> None:
-        self.s_out.send(latency_code(self.s_in.recv(), max_timestamp=self.max_timestamp))
+        """Run the latency coding simulation step."""
+        self.s_out.send(
+            latency_code(self.s_in.recv(), max_timestamp=self.max_timestamp)
+        )
 
 
 __all__ = ["PyCSNNLatencyCodingModel"]

@@ -30,6 +30,7 @@ class PyCSNNSVMClassifierModel(PyLoihiProcessModel):
     pred_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, float)
 
     def __init__(self, proc_params):
+        """Initialize the SVM classifier model."""
         super().__init__(proc_params)
         self.output_shape = tuple(int(v) for v in proc_params["output_shape"])
         self.output_size = int(np.prod(self.output_shape))
@@ -41,9 +42,11 @@ class PyCSNNSVMClassifierModel(PyLoihiProcessModel):
                 self.bundle = load_svm_bundle(path)
 
     def _empty_output(self) -> np.ndarray:
+        """Return an empty output array for classification."""
         return empty_svm_output(self.output_shape)
 
     def run_spk(self) -> None:
+        """Run the SVM classification simulation step by predicting on inputs."""
         features = np.asarray(self.s_in.recv(), dtype=np.float32).reshape(-1)
         if self.bundle is None:
             self.pred_out.send(self._empty_output())

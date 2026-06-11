@@ -12,6 +12,20 @@ PairLike = ty.Union[int, ty.Tuple[int, int]]
 
 
 def _as_pair(value: PairLike | None, name: str) -> ty.Tuple[int, int]:
+    """Convert value to a tuple of two integers.
+
+    Parameters
+    ----------
+    value : PairLike or None
+        Scalar integer or a pair of integers.
+    name : str
+        Name of parameter for error messages.
+
+    Returns
+    -------
+    tuple of (int, int)
+        A pair of integers.
+    """
     if value is None:
         raise ValueError(f"{name} must be an int or a pair")
 
@@ -24,10 +38,11 @@ def _as_pair(value: PairLike | None, name: str) -> ty.Tuple[int, int]:
 
 
 def compute_output_shape(
-        input_shape: ty.Tuple[int, int, int],
-        kernel_shape: ty.Tuple[int, int, int, int],
-        stride: PairLike = 1,
-        padding: PairLike = 0) -> ty.Tuple[int, int, int]:
+    input_shape: ty.Tuple[int, int, int],
+    kernel_shape: ty.Tuple[int, int, int, int],
+    stride: PairLike = 1,
+    padding: PairLike = 0,
+) -> ty.Tuple[int, int, int]:
     """Return CSNN convolution output shape in ``(width, height, channels)``."""
 
     if len(input_shape) != 3:
@@ -35,7 +50,8 @@ def compute_output_shape(
     if len(kernel_shape) != 4:
         raise ValueError(
             "kernel_shape must be "
-            "(filter_width, filter_height, input_depth, output_filters)")
+            "(filter_width, filter_height, input_depth, output_filters)"
+        )
 
     in_w, in_h, in_depth = (int(v) for v in input_shape)
     filter_w, filter_h, kernel_depth, filters = (int(v) for v in kernel_shape)
@@ -49,7 +65,8 @@ def compute_output_shape(
     if in_depth != kernel_depth:
         raise ValueError(
             "input channel count must match kernel input depth, "
-            f"got {in_depth} and {kernel_depth}")
+            f"got {in_depth} and {kernel_depth}"
+        )
     if stride_w <= 0 or stride_h <= 0:
         raise ValueError("stride dimensions must be positive")
     if pad_w < 0 or pad_h < 0:
@@ -63,13 +80,13 @@ def compute_output_shape(
 
 
 def affected_output_positions(
-        x_in: int,
-        y_in: int,
-        *,
-        output_shape: ty.Tuple[int, int, int],
-        kernel_size: PairLike,
-        stride: PairLike = 1,
-        padding: PairLike = 0
+    x_in: int,
+    y_in: int,
+    *,
+    output_shape: ty.Tuple[int, int, int],
+    kernel_size: PairLike,
+    stride: PairLike = 1,
+    padding: PairLike = 0,
 ) -> ty.Iterator[ty.Tuple[int, int, int, int]]:
     """Yield output positions affected by one input spike.
 
@@ -82,8 +99,16 @@ def affected_output_positions(
     stride_w, stride_h = _as_pair(stride, "stride")
     pad_w, pad_h = _as_pair(padding, "padding")
 
-    start_x = (x_in + pad_w - (filter_w - stride_w)) // stride_w         if x_in + pad_w >= filter_w - stride_w else 0
-    start_y = (y_in + pad_h - (filter_h - stride_h)) // stride_h         if y_in + pad_h >= filter_h - stride_h else 0
+    start_x = (
+        (x_in + pad_w - (filter_w - stride_w)) // stride_w
+        if x_in + pad_w >= filter_w - stride_w
+        else 0
+    )
+    start_y = (
+        (y_in + pad_h - (filter_h - stride_h)) // stride_h
+        if y_in + pad_h >= filter_h - stride_h
+        else 0
+    )
     last_x = (x_in + pad_w) // stride_w
     last_y = (y_in + pad_h) // stride_h
 
@@ -99,14 +124,15 @@ def affected_output_positions(
 
 
 def csnn_convolve(
-        spike_times: np.ndarray,
-        weights: np.ndarray,
-        thresholds: np.ndarray,
-        *,
-        stride: PairLike = 1,
-        padding: PairLike = 0,
-        wta_infer: bool = False,
-        dtype=np.float32) -> np.ndarray:
+    spike_times: np.ndarray,
+    weights: np.ndarray,
+    thresholds: np.ndarray,
+    *,
+    stride: PairLike = 1,
+    padding: PairLike = 0,
+    wta_infer: bool = False,
+    dtype=np.float32,
+) -> np.ndarray:
     """Infer one CSNN convolution layer from fixed weights and thresholds.
 
     ``spike_times`` is a dense tensor of first-spike timestamps in
@@ -123,11 +149,13 @@ def csnn_convolve(
     if input_times.ndim != 3:
         raise ValueError(
             "spike_times must have shape (width, height, channels), "
-            f"got {input_times.shape}")
+            f"got {input_times.shape}"
+        )
     if kernel.ndim != 4:
         raise ValueError(
             "weights must have shape "
-            "(filter_width, filter_height, input_depth, output_filters)")
+            "(filter_width, filter_height, input_depth, output_filters)"
+        )
 
     out_filters = kernel.shape[3]
     if th.ndim == 0:
@@ -135,12 +163,14 @@ def csnn_convolve(
     elif th.shape != (out_filters,):
         raise ValueError(
             "thresholds must be scalar or have shape (output_filters,), "
-            f"got {th.shape}")
+            f"got {th.shape}"
+        )
 
     stride = _as_pair(stride, "stride")
     padding = _as_pair(padding, "padding")
     output_shape = compute_output_shape(
-        input_times.shape, kernel.shape, stride=stride, padding=padding)
+        input_times.shape, kernel.shape, stride=stride, padding=padding
+    )
     out_w, out_h, _ = output_shape
     filter_w, filter_h = kernel.shape[:2]
 
@@ -153,13 +183,22 @@ def csnn_convolve(
         if len(event.index) != 3:
             raise ValueError("spike event indices must be 3D")
         x_in, y_in, z_in = event.index
-        for out_x, out_y, weight_x, weight_y in affected_output_positions(x_in, y_in, output_shape=output_shape, kernel_size=(filter_w, filter_h),stride=stride, padding=padding):
+        for out_x, out_y, weight_x, weight_y in affected_output_positions(
+            x_in,
+            y_in,
+            output_shape=output_shape,
+            kernel_size=(filter_w, filter_h),
+            stride=stride,
+            padding=padding,
+        ):
             if wta_infer and wta_used[out_x, out_y]:
                 continue
             for out_filter in range(out_filters):
                 if has_spiked[out_x, out_y, out_filter]:
                     continue
-                activation[out_x, out_y, out_filter] += kernel[weight_x, weight_y, z_in, out_filter]
+                activation[out_x, out_y, out_filter] += kernel[
+                    weight_x, weight_y, z_in, out_filter
+                ]
                 if activation[out_x, out_y, out_filter] >= th[out_filter]:
                     output[out_x, out_y, out_filter] = event.time
                     has_spiked[out_x, out_y, out_filter] = True

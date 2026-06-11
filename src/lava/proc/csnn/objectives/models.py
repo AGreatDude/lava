@@ -22,11 +22,15 @@ class PyCSNNTimeObjectiveOutputModel(PyLoihiProcessModel):
     s_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, float)
 
     def __init__(self, proc_params):
+        """Initialize the objective output model."""
         super().__init__(proc_params)
         self.t_obj = float(proc_params["t_obj"])
 
     def run_spk(self) -> None:
-        self.s_out.send(time_objective_output(self.s_in.recv(), t_obj=self.t_obj))
+        """Run the objective output model step."""
+        self.s_out.send(
+            time_objective_output(self.s_in.recv(), t_obj=self.t_obj)
+        )
 
 
 __all__ = ["PyCSNNTimeObjectiveOutputModel"]

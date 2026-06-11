@@ -6,7 +6,6 @@ from typing import Iterator, Optional, Tuple
 
 import numpy as np
 
-
 INFINITE_TIME = np.inf
 
 
@@ -16,26 +15,31 @@ class SpikeEvent:
     __slots__ = ("time", "index")
 
     def __init__(self, time: float, index: Tuple[int, ...]) -> None:
+        """Initialize a spike event with a timestamp and a spatial index."""
         self.time = float(time)
         self.index = tuple(index)
 
     def __lt__(self, other: "SpikeEvent") -> bool:
+        """Compare spike events by time first, then index."""
         return (self.time, self.index) < (other.time, other.index)
 
     def __eq__(self, other: object) -> bool:
+        """Check equality with another spike event."""
         if not isinstance(other, SpikeEvent):
             return NotImplemented
         return self.time == other.time and self.index == other.index
 
     def __repr__(self) -> str:
+        """Return string representation of the spike event."""
         return f"SpikeEvent(time={self.time!r}, index={self.index!r})"
 
 
 def latency_code(
-        values: np.ndarray,
-        *,
-        max_timestamp: Optional[float] = None,
-        dtype: np.dtype = np.float32) -> np.ndarray:
+    values: np.ndarray,
+    *,
+    max_timestamp: Optional[float] = None,
+    dtype: np.dtype = np.float32,
+) -> np.ndarray:
     """Convert normalized intensities to CSNN first-spike timestamps."""
 
     dtype = np.dtype(dtype)
@@ -68,10 +72,8 @@ def iter_finite_spike_events(spike_times: np.ndarray) -> Iterator[SpikeEvent]:
 
 
 def spike_times_to_raster(
-        spike_times: np.ndarray,
-        *,
-        time_steps: int,
-        dtype: np.dtype = np.bool_) -> np.ndarray:
+    spike_times: np.ndarray, *, time_steps: int, dtype: np.dtype = np.bool_
+) -> np.ndarray:
     """Convert timestamp tensors to a diagnostic boolean raster."""
 
     if time_steps <= 0:
@@ -93,9 +95,8 @@ def spike_times_to_raster(
 
 
 def raster_to_first_spike_times(
-        raster: np.ndarray,
-        *,
-        dtype: np.dtype = np.float32) -> np.ndarray:
+    raster: np.ndarray, *, dtype: np.dtype = np.float32
+) -> np.ndarray:
     """Convert a diagnostic raster back to normalized first-spike times."""
 
     data = np.asarray(raster)

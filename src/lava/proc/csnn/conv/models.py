@@ -30,6 +30,7 @@ class PyCSNNConvolutionModel(PyLoihiProcessModel):
     wta_infer: np.ndarray = LavaPyType(np.ndarray, np.int32)
 
     def run_spk(self) -> None:
+        """Run the CSNN convolution step by processing incoming spike times."""
         input_times = self.s_in.recv()
         output_times = csnn_convolve(
             input_times,
@@ -38,7 +39,8 @@ class PyCSNNConvolutionModel(PyLoihiProcessModel):
             stride=tuple(int(v) for v in np.asarray(self.stride).flat),
             padding=tuple(int(v) for v in np.asarray(self.padding).flat),
             wta_infer=bool(np.asarray(self.wta_infer).item()),
-            dtype=np.float32)
+            dtype=np.float32,
+        )
         self.s_out.send(output_times)
 
 
