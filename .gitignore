@@ -10,8 +10,12 @@ predefs_*.h
 *.so
 
 # Dataloader folder
+/outputs/*
 src/lava/utils/dataloader/temp/
 src/lava/utils/dataloader/mnist.npy
+
+#experiments
+/experiments
 
 # Distribution / packaging
 .Python
