@@ -14,8 +14,9 @@ predefs_*.h
 src/lava/utils/dataloader/temp/
 src/lava/utils/dataloader/mnist.npy
 
-#experiments
+# Used to store weights and experiments
 /experiments
+/outputs
 
 # Distribution / packaging
 .Python
